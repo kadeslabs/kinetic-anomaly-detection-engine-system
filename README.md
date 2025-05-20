@@ -3,7 +3,6 @@
 <div align="center">
 
 [![GitHub release](https://img.shields.io/github/v/release/kadeslabs/kinetic-anomaly-detection-engine-system?include_prereleases&style=flat-square)](https://github.com/kadeslabs/kinetic-anomaly-detection-engine-system/releases)
-[![Build Status](https://img.shields.io/github/workflow/status/kadeslabs/kinetic-anomaly-detection-engine-system/CI%20Pipeline?style=flat-square)](https://github.com/kadeslabs/kinetic-anomaly-detection-engine-system/actions)
 [![License](https://img.shields.io/badge/license-Proprietary-red.svg?style=flat-square)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue?style=flat-square)](https://www.python.org/downloads/)
 
