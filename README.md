@@ -7,6 +7,8 @@
 [![License](https://img.shields.io/badge/license-Proprietary-red.svg?style=flat-square)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue?style=flat-square)](https://www.python.org/downloads/)
 
+![KADES Banner](assets/kades-banner-2.0.png)
+
 *Advanced AI-powered system for detecting market anomalies in the Solana ecosystem*
 
 [Getting Started](#getting-started) •
