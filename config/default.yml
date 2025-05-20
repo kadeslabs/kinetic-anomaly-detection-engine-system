@@ -1,0 +1,219 @@
+# Kinetic Anomaly Detection Engine System (KADES)
+#
+# Default Configuration
+#
+# This configuration file provides base settings for the KADES system.
+# All environment-specific configs inherit from these defaults.
+#
+# Author: KADES
+# Team License: Proprietary
+
+# API Configuration
+api:
+  version: 'v1'
+  rate_limit:
+    requests_per_minute: 60
+    burst_size: 10
+  cors:
+    allowed_origins: ['*']
+    allowed_methods: ['GET', 'POST', 'OPTIONS']
+  timeout:
+    read_seconds: 30
+    write_seconds: 30
+
+# Blockchain Configuration
+blockchain:
+  rpc_endpoints:
+    - "https://api.mainnet-beta.solana.com"
+    - "https://solana-api.projectserum.com"
+  retry_delay: 5
+  max_retries: 3
+
+
+# Database Configuration
+database:
+  type: 'postgresql'
+  pool_size: 20
+  max_overflow: 10
+  pool_timeout: 30
+  pool_recycle: 3600
+  connection:
+    host: 'localhost'
+    port: 5432
+    database: 'kades'
+    username: 'kades_user'
+
+# Model Configuration
+models:
+  lstm:
+    lookback_period: 24
+    forecast_horizon: 6
+    hidden_layers: [64, 32]
+    dropout_rate: 0.2
+  sentiment:
+    embedding_dimension: 768
+    max_sequence_length: 512
+    confidence_threshold: 0.7
+
+# Anomaly Detection
+anomaly:
+  thresholds:
+    price_change: 0.1
+    volume_spike: 3.0
+    liquidity_drop: 0.2
+  time_windows:
+    short_term: '5m'
+    medium_term: '1h'
+    long_term: '24h'
+  sensitivity:
+    low: 0.3
+    medium: 0.6
+    high: 0.8
+
+# Social Media Configuration
+social_media:
+  platforms:
+    - name: 'x'
+      rate_limit: 500
+      batch_size: 100
+    - name: 'telegram'
+      rate_limit: 20
+      batch_size: 50
+    - name: 'discord'
+      rate_limit: 50
+      batch_size: 25
+  monitoring:
+    update_interval: 300
+    cache_duration: 3600
+
+# Logging Configuration
+logging:
+  level: 'INFO'
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  handlers:
+    file:
+      filename: 'kades.log'
+      max_bytes: 10485760
+      backup_count: 5
+    console:
+      enabled: true
+      level: 'INFO'
+
+# Cache Configuration
+cache:
+  type: 'redis'
+  ttl:
+    default: 300
+    risk_score: 60
+    whale_activity: 120
+  connection:
+    host: 'localhost'
+    port: 6379
+    db: 0
+
+# Metrics and Monitoring
+metrics:
+  enabled: true
+  collection_interval: 10
+  retention_days: 30
+  exporters:
+    prometheus:
+      enabled: true
+      port: 9090
+    statsd:
+      enabled: false
+      host: 'localhost'
+      port: 8125
+
+# Security Configuration
+security:
+  jwt:
+    algorithm: 'HS256'
+    access_token_expire_minutes: 30
+    refresh_token_expire_days: 7
+  api_key:
+    length: 32
+    prefix: 'kades'
+  rate_limiting:
+    enabled: true
+    strategy: 'sliding_window'
+    
+# Webhook Configuration
+webhooks:
+  retry:
+    max_attempts: 3
+    initial_delay: 5
+    max_delay: 300
+  batch:
+    size: 100
+    timeout: 30
+  endpoints:
+    - name: 'alerts'
+      url_template: 'http://localhost:8080/webhook/alerts'
+      secret_header: 'X-Webhook-Secret'
+
+rate_limits:
+  # Basic tier limits
+  basic:
+    default:  # Default limits for unspecified endpoints
+      rate: 1.0  # 1 request per second
+      burst: 5   # Maximum burst of 5 requests
+    
+    # Endpoint specific limits
+    "/api/v1/patterns":
+      rate: 0.2   # 1 request per 5 seconds
+      burst: 2    # Maximum burst of 2 requests
+      
+    "/api/v1/anomalies":
+      rate: 0.1   # 1 request per 10 seconds
+      burst: 1    # No bursting allowed
+      
+    "/ws":  # WebSocket connections
+      rate: 0.033  # 1 connection per 30 seconds
+      burst: 1     # Only one active connection
+  
+  # Premium tier limits
+  premium:
+    default:
+      rate: 5.0   # 5 requests per second
+      burst: 20   # Maximum burst of 20 requests
+    
+    "/api/v1/patterns":
+      rate: 2.0   # 2 requests per second
+      burst: 10   # Maximum burst of 10 requests
+      
+    "/api/v1/anomalies":
+      rate: 1.0   # 1 request per second
+      burst: 5    # Maximum burst of 5 requests
+      
+    "/ws":
+      rate: 0.2   # 1 connection per 5 seconds
+      burst: 5    # Up to 5 simultaneous connections
+  
+  # Enterprise tier limits
+  enterprise:
+    default:
+      rate: 20.0  # 20 requests per second
+      burst: 50   # Maximum burst of 50 requests
+    
+    "/api/v1/patterns":
+      rate: 10.0  # 10 requests per second
+      burst: 30   # Maximum burst of 30 requests
+      
+    "/api/v1/anomalies":
+      rate: 5.0   # 5 requests per second
+      burst: 15   # Maximum burst of 15 requests
+      
+    "/ws":
+      rate: 1.0   # 1 connection per second
+      burst: 20   # Up to 20 simultaneous connections
+
+# Redis configuration
+redis:
+  key_prefix: "kades:ratelimit:"
+  cleanup_interval: 3600  # Clean up expired keys every hour
+
+# Response headers configuration
+headers:
+  include_headers: true   # Include rate limit headers in responses
+  retry_after: true      # Include Retry-After header when limit exceeded

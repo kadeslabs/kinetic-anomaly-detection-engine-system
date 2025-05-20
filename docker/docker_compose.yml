@@ -1,0 +1,123 @@
+# Kinetic Anomaly Detection Engine System (KADES)
+#
+# Docker Compose configuration for local development
+# and testing environments
+#
+# Author: KADES
+# Team License: Proprietary
+
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      target: development
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./config:/app/config
+    environment:
+      - FLASK_APP=src/api/app.py
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://kades:kades@db:5432/kades
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+      - blockchain-node
+    networks:
+      - kades-network
+
+  worker:
+    build:
+      context: .
+      target: development
+    command: celery -A src.worker.celery worker --loglevel=info
+    volumes:
+      - ./src:/app/src
+      - ./config:/app/config
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - DATABASE_URL=postgresql://kades:kades@db:5432/kades
+    depends_on:
+      - redis
+      - db
+    networks:
+      - kades-network
+
+  db:
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=kades
+      - POSTGRES_PASSWORD=kades
+      - POSTGRES_DB=kades
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - kades-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - kades-network
+
+  blockchain-node:
+    image: trufflesuite/ganache:latest
+    ports:
+      - "8545:8545"
+    command:
+      - --deterministic
+      - --chain.networkId=1337
+      - --chain.chainId=1337
+      - --miner.blockTime=5
+    networks:
+      - kades-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+    networks:
+      - kades-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+    networks:
+      - kades-network
+
+networks:
+  kades-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
